@@ -920,9 +920,10 @@ static void remove_existing_send_source_and_payload(OwrTransportAgent *transport
     else
         pad_name = g_strdup_printf("audio_raw_sink_%u", stream_id);
     sinkpad = gst_element_get_static_pad(transport_agent->priv->transport_bin, pad_name);
-    g_assert(sinkpad);
+   // g_assert(sinkpad);
     g_free(pad_name);
 
+if(sinkpad){
     bin_src_pad = gst_pad_get_peer(sinkpad);
     g_assert(bin_src_pad);
     source_bin = GST_ELEMENT(gst_pad_get_parent(bin_src_pad));
@@ -934,21 +935,24 @@ static void remove_existing_send_source_and_payload(OwrTransportAgent *transport
     gst_bin_remove(GST_BIN(transport_agent->priv->pipeline), source_bin);
     gst_object_unref(bin_src_pad);
     gst_object_unref(source_bin);
-
+}
     /* Now the payload bin */
     bin_name = g_strdup_printf("send-input-bin-%u", stream_id);
     send_input_bin = gst_bin_get_by_name(GST_BIN(transport_agent->priv->transport_bin), bin_name);
-    g_assert(send_input_bin);
+   // g_assert(send_input_bin);
     g_free(bin_name);
+if(send_input_bin){
+
     gst_element_set_state(send_input_bin, GST_STATE_NULL);
     gst_bin_remove(GST_BIN(transport_agent->priv->transport_bin), send_input_bin);
     gst_object_unref(send_input_bin);
-
+}
     /* Remove the connecting ghostpad */
+if(sinkpad){
     gst_pad_set_active(sinkpad, FALSE);
     gst_element_remove_pad(transport_agent->priv->transport_bin, sinkpad);
     gst_object_unref(sinkpad);
-
+}
     value = _owr_value_table_add(event_data, "end_time", G_TYPE_INT64);
     g_value_set_int64(value, g_get_monotonic_time());
     OWR_POST_STATS(media_session, SEND_PIPELINE_REMOVED, event_data);
